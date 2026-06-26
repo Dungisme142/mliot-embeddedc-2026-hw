@@ -7,10 +7,14 @@
 
 void parse_config(const uint8_t *config_packet, int16_t *high_threshold) {
     // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
-
-
-
-
+    if(config_packet == NULL ){
+        printf("Hàm phải thoát an toàn, không làm crash chương trình.");
+        return;
+    } 
+    uint8_t index_0 = *config_packet;
+    uint8_t index_1 = *(++config_packet);
+    int16_t merge = (index_1 << 8) | index_0 ;
+    *high_threshold = merge;
     // HỌC VIÊN KẾT THÚC VIẾT CODE
 }
 
@@ -18,10 +22,9 @@ void parse_config(const uint8_t *config_packet, int16_t *high_threshold) {
 
 int16_t read_temperature_reg(void *hw_sensor_reg) {
     // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
-
-
-
-
+    if(hw_sensor_reg == NULL) return 0;
+    volatile int16_t *temp = (volatile int16_t*) hw_sensor_reg;
+    return *temp;
     // HỌC VIÊN KẾT THÚC VIẾT CODE
 }
 
@@ -29,10 +32,19 @@ int16_t read_temperature_reg(void *hw_sensor_reg) {
 
 void control_output(uint8_t *control_reg, uint8_t fan_enable, uint8_t alarm_enable) {
     // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
-
-
-
-
+    if(control_reg == NULL) return;
+    // thay đổi fan_enable
+    if(fan_enable == 1){
+        *control_reg |= 1;
+    } else{
+        *control_reg &= ~1;
+    }
+    // thay đổi alarm_enable
+    if(alarm_enable == 1){
+        *control_reg |= (1 << 1);
+    } else{
+        *control_reg &= ~(1 << 1);
+    }
     // HỌC VIÊN KẾT THÚC VIẾT CODE
 }
 
