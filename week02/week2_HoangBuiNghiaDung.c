@@ -9,9 +9,9 @@ typedef union {
     uint16_t raw_value;
     struct {
         // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
-        uint8_t PWR_ON : 1; // PWR_ON lấy 1 bit là [0]
-        uint8_t ASSIST_LEVEL : 2; // ASSIST_LEVEL lấy 2 bit là [2:1]
-        uint8_t LIGHT_BRIGHT : 4; // LIGHT_BRIGHT lấy 4 bit là [6:3]
+        uint16_t PWR_ON : 1; // PWR_ON lấy 1 bit là [0]
+        uint16_t ASSIST_LEVEL : 2; // ASSIST_LEVEL lấy 2 bit là [2:1]
+        uint16_t LIGHT_BRIGHT : 4; // LIGHT_BRIGHT lấy 4 bit là [6:3]
         uint16_t RESERVED : 9; // RESERVED lấy 9 bit là [15:7]
         // HỌC VIÊN KẾT THÚC VIẾT CODE
     } fields;
@@ -77,7 +77,10 @@ uint32_t total_odometer = 0;
 void crash_simulation(void) {
     // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
     // in luôn ra màn hình Crash simulation
-    printf("Crash simulation");
+    char buffer[1024];
+
+    printf("Buffer Address: %p\n", (void *)buffer);
+
     crash_simulation();
 
     // HỌC VIÊN KẾT THÚC VIẾT CODE
