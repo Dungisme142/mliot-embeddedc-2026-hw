@@ -9,10 +9,10 @@ typedef union {
     uint16_t raw_value;
     struct {
         // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
-
-
-
-
+        uint8_t PWR_ON : 1; // PWR_ON lấy 1 bit là [0]
+        uint8_t ASSIST_LEVEL : 2; // ASSIST_LEVEL lấy 2 bit là [2:1]
+        uint8_t LIGHT_BRIGHT : 4; // LIGHT_BRIGHT lấy 4 bit là [6:3]
+        uint16_t RESERVED : 9; // RESERVED lấy 9 bit là [15:7]
         // HỌC VIÊN KẾT THÚC VIẾT CODE
     } fields;
 } Bike_Status_t;
@@ -31,9 +31,20 @@ void drive_sport(void) {
 }
 
 // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
+typedef void (*drive_modes)(void);
+static const drive_modes drive_table[] = {
+    drive_eco,
+    drive_normal,
+    drive_sport
+};
 
-
-
+void choose_drive (uint8_t drive_index){
+    // chặn driver_index không vượt quá 3
+    // chọn chế độ dựa trên hàm con trỏ
+    if(drive_index < 3){
+        drive_table[drive_index]();
+    }
+}
 
 // HỌC VIÊN KẾT THÚC VIẾT CODE
 
@@ -44,10 +55,12 @@ void Battery_Monitor(void (*overheat_cb)(void)) {
     int battery_temp = 45; 
     
     // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
-
-
-
-
+    if(overheat_cb == NULL) return;
+    // nếu nhiệt độ hơn 40 thì callback overheat_cb()
+    // overheat_cb() sẽ được gán là Critical_Battery_Handler
+    if( battery_temp > 40){
+        overheat_cb();
+    }
     // HỌC VIÊN KẾT THÚC VIẾT CODE
 }
 
@@ -63,9 +76,9 @@ uint32_t total_odometer = 0;
 
 void crash_simulation(void) {
     // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
-
-
-
+    // in luôn ra màn hình Crash simulation
+    printf("Crash simulation");
+    crash_simulation();
 
     // HỌC VIÊN KẾT THÚC VIẾT CODE
 }
@@ -85,10 +98,7 @@ int main() {
     // 2. Test Task 2
     printf("ENGINE CONTROLLING: \n");
     // HỌC VIÊN BẮT ĐẦU VIẾT CODE TỪ ĐÂY
-
-
-
-
+    choose_drive(my_bike.fields.ASSIST_LEVEL);
     // HỌC VIÊN KẾT THÚC VIẾT CODE
 
     // 3. Test Task 3
@@ -103,7 +113,7 @@ int main() {
     printf("current_speed (RAM/Stack):  %p\n", (void*)&current_speed);
 
     // Bỏ comment dòng dưới để chạy thử bài Crash Lab
-    // crash_simulation();
+    //crash_simulation();
 
     return 0;
 }

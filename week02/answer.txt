@@ -1,0 +1,27 @@
+Task 4
+4.2
+Sau khi quan sát log in địa chỉ bộ nhớ ở cuối màn hình thì ta thấy:
+BIKE_MODEL là chuỗi kí tự vì BIKE_MODEL nằm trong const (không thay đổi được) nên BIKE_MODEL thuộc phân vùng bộ nhớ vật lý '.bss' 
+total_odometer là biến global chưa khởi tạo vì kết quả của nó bằng 0 nên total_odometer thuộc phân vùng bộ nhớ vật lý '.rodata'
+current_speed là biến cục bộ nên current_speed thuộc phân vùng bộ nhớ vật lý 'Stack'
+4.3
+Trong hàm crash_simulation được thực hiện bằng cách viết một hàm đệ quy ngắn 
+gọn nhằm chủ động ép hệ thống rơi vào trạng thái tràn ngăn xếp nên mình in ra màn 
+hình "Crash_simulation" và cho đệ quy. Khi chạy chương trình thì chữ "Crash_simulation"
+chạy liên tục tràn hết Terminal. 
+
+Khi đoạn mã chạy trên một vi điều khiển thực tế, CPU sẽ nhảy vào hàm ngắt ngoại lệ
+ISR để xử lý sự cố(Hàm ISR là hàm phục vụ ngắt đặc biệt được kích hoạt
+trực tiếp bởi phần cứng CPU khi có sự kiện (cạnh tín hiệu GPIO, UART nhận byte, Timer tràn...)).
+Trong đó, với đoạn mã trên thì CPU sẽ nhảy vào hàm ngắt ngoại lệ.
+
+Task 5
+* Giải thích ngắn gọn về .bss: .bss chứa các biến global/static chưa khởi tạo hoặc được khởi tạo toàn bằng 0 nên không chiếm dung lượng Flash dữ liệu ban đầu.
+Khi Reset, Startup Code sẽ dùng memset() để đưa toàn bộ vùng .bss về 0
+* Giải thích ngắn gọn về .data: .data chứa các biến global/static đã được khởi tạo bằng giá trị khác 0 và các giá trị khởi tạo phải được lưu trong Flash.
+Khi Reset, Startup Code sẽ copy dữ liệu từ Flash sang RAM.
+Theo mình Cách khai báo bằng cách 1 sẽ giúp chương trình biên dịch thành công và nạp được xuống chip mà không làm quá tải dung lượng bộ nhớ Flash.
+Khi sử dụng khai báo bằng cách 2 thì các giá trị được khởi tạo khác 0 nên sẽ thuộc vùng .data. Các giá trị khởi tạo phải được lưu trong Flash để khi khởi động hệ thống copy sang RAM.
+Do Flash chỉ còn 20 KB, trong khi mảng cần khoảng 40 KB, chương trình sẽ không thể liên kết (Link) và nạp xuống chip.
+Còn nếu sử dụng cách 1 thì vùng .bss không chứa dữ liệu trong Flash, mà khi vi điều khiển khởi động, Startup Code sẽ tự động gán toàn bộ vùng này về 0.
+Vì vậy mảng 40kB chỉ chiếm RAM, gần như không làm tăng dung lượng Flash.
