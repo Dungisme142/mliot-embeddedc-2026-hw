@@ -1,0 +1,11 @@
+# ninja log v7
+34	127	8060934111921588	CMakeFiles/Matrix_Led_2x2.dir/startup_stm32f103xb.s.obj	e54e3a9e3750c4ce
+43	178	8060934111968978	CMakeFiles/Matrix_Led_2x2.dir/system_stm32f1xx.c.obj	a8849c5a9153d85b
+25	210	8060934111846833	CMakeFiles/Matrix_Led_2x2.dir/main.c.obj	117a01d7c833dc8f
+51	227	8060934112070472	CMakeFiles/Matrix_Led_2x2.dir/stm32f1xx_hal.c.obj	f97802849b716371
+63	243	8060934112235953	CMakeFiles/Matrix_Led_2x2.dir/stm32f1xx_hal_gpio.c.obj	504520d333bf3c2
+81	247	8060934112403935	CMakeFiles/Matrix_Led_2x2.dir/stm32f1xx_hal_cortex.c.obj	db362de9315bb936
+71	270	8060934112260793	CMakeFiles/Matrix_Led_2x2.dir/stm32f1xx_hal_rcc.c.obj	73366b9357dc90c0
+273	413	8060934114317484	Matrix_Led_2x2.elf	f4a12e7acf9eacbb
+413	473	8060934115725910	CMakeFiles/generate_bin	7e92dd05dcfafe4e
+413	473	8060934115725910	D:/EmbeddedC/Matrix_Led_2x2/build/CMakeFiles/generate_bin	7e92dd05dcfafe4e

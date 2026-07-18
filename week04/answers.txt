@@ -1,0 +1,150 @@
+GHI CHÚ THIẾT KẾ TASK 5: Học viên chọn thiết kế LED phản hồi theo CÁCH 2 (Điều khiển qua Firmware). Đấu nối cụm LED đơn trực tiếp vào các chân GPIO trống trên PORT B (PB7, PB4, PB5, PB6) làm Digital Output để nhận tín hiệu điều khiển và bật/tắt phản hồi tương ứng khi thuật toán firmware phát hiện các nút bấm (Button) thuộc ma trận phím 2x2 được nhấn.
+
+================================================================================
+SƠ ĐỒ NỐI DÂY CHI TIẾT (HARDWARE WIRING) - TASK 5 (MATRIX KEYPAD 2x2 & LEDS)
+================================================================================
+
+1. SƠ ĐỒ KẾT NỐI MA TRẬN PHÍM VÀ CỤM NÚT NHẤN SANG PORT A (STM32)
+--------------------------------------------------------------------------------
+   [PA2 (Row 0)] ──── Thao tác câu ngang ──── Cắm vào 1 chân của SW1
+                                          └── Cắm vào 1 chân của SW2
+   [PA3 (Row 1)] ──── Thao tác câu ngang ──── Cắm vào 1 chân của SW3
+                                          └── Cắm vào 1 chân của SW4
+
+   [PA0 (Col 0)] ──── Thao tác câu dọc   ──── Cắm vào chân còn lại của SW1
+                                          └── Cắm vào chân còn lại của SW3
+   [PA1 (Col 1)] ──── Thao tác câu dọc   ──── Cắm vào chân còn lại của SW2
+                                          └── Cắm vào chân còn lại của SW4
+
+* Ánh xạ nút nhấn vật lý:
+  - Phím SW1 (Hàng 0, Cột 0): Chân PA2 giao với Chân PA0
+  - Phím SW2 (Hàng 0, Cột 1): Chân PA2 giao với Chân PA1
+  - Phím SW3 (Hàng 1, Cột 0): Chân PA3 giao với Chân PA0
+  - Phím SW4 (Hàng 1, Cột 1): Chân PA3 giao với Chân PA1
+
+2. SƠ ĐỒ KẾT NỐI CỤM LED PHẢN HỒI SANG PORT B (STM32 - ACTIVE HIGH)
+--------------------------------------------------------------------------------
+   [PB7 (LED 1 - Phản hồi SW1)]  ───► [Anode LED1] | [Cathode LED1] ──┐
+   [PB4 (LED 2 - Phản hồi SW2)]  ───► [Anode LED2] | [Cathode LED2] ──┼─► [GND]
+   [PB5 (LED 3 - Phản hồi SW3)]  ───► [Anode LED3] | [Cathode LED3] ──┤
+   [PB6 (LED 4 - Phản hồi SW4)]  ───► [Anode LED4] | [Cathode LED4] ──┘
+
+* Ghi chú phần cứng: Toàn bộ chân âm (Cathode - chân ngắn) của 4 con LED được 
+  nối chung mạch và kéo về chân GND của Kit STM32 Blue Pill.
+
+3. LINK VIDEO DEMO SẢN PHẨM PHẦN CỨNG THỰC TẾ (DƯỚI 30 GIÂY)
+--------------------------------------------------------------------------------
+URL: https://youtube.com/shorts/gdcRBGiFVV4?feature=share
+================================================================================
+TASK 1 (KIẾN TRÚC PHẦN CỨNG): BẢN CHẤT CÁC CHẾ ĐỘ GPIO
+================================================================================
+
+1.1 Cấu trúc bên trong và sự phối hợp của cặp Transistor PMOS/NMOS ở chế độ 
+    Output Push-Pull
+--------------------------------------------------------------------------------
+Tầng ngõ ra của cấu trúc Push-Pull được cấu tạo bởi hai Transistor hiệu ứng 
+trường MOSFET kênh P (PMOS - nối lên nguồn điện áp V_DD 3.3V) va kênh N (NMOS - 
+nối xuống đất V_SS/GND) mắc nối tiếp với nhau. Tùy thuộc vào giá trị được ghi 
+vào thanh ghi dữ liệu đầu ra (ODR), cặp Transistor này sẽ phối hợp đóng/ngắt 
+luân phiên đối nghịch như sau:
+
+* Khi cấu hình chân ở mức logic '1' (3.3V) -- Chế độ Push (Đẩy dòng):
+  - Trạng thái: PMOS ĐÓNG (Dẫn điện - ON) | NMOS NGẮT (Cách điện - OFF).
+  - Bản chất dòng điện: Chân GPIO lúc này được thông mạch trực tiếp lên đường 
+    nguồn nội V_DD (3.3V) thông qua lòng con PMOS đang dẫn. Điện áp cao từ nguồn 
+    nội sẽ "đẩy" (Source) dòng điện chạy từ trong chip, đi qua chân GPIO và cấp 
+    năng lượng ra ngoài tải (ví dụ: làm sáng LED ngoài).
+
+* Khi cấu hình chân ở mức logic '0' (0V) -- Chế độ Pull (Hút dòng):
+  - Trạng thái: PMOS NGẮT (Cách điện - OFF) | NMOS ĐÓNG (Dẫn điện - ON).
+  - Bản chất dòng điện: Chân GPIO lúc này được cách ly hoàn toàn khỏi nguồn 
+    V_DD và thông mạch thẳng xuống đường đất nội V_SS (GND) thông qua con NMOS 
+    đang dẫn. Dòng điện từ mạch ngoài sẽ bị "hút" (Sink) ngược vào bên trong 
+    chan chip, đi qua lòng con NMOS để thoát xuống GND của hệ thống.
+
+* Hiện tượng ngắn mạch (Shoot-Through) khi cả hai Transistor cùng ĐÓNG:
+  - Nếu do lỗi logic điều khiển bên trong hoặc lỗi IC, cả PMOS và NMOS cùng đồng 
+    thời ĐÓNG (Dẫn điện), một đường ống dẫn thông suốt lý tưởng (R xấp xỉ 0 Ohm) 
+    se được tạo ra nối trực tiếp từ nguồn nội V_DD xuống thẳng đất V_SS mà không 
+    hề đi qua bất kỳ tải tiêu thụ nào bên ngoài.
+  - Theo định luật Ohm (I = U/R), cường độ dòng điện phóng qua hai Mosfet sẽ 
+    vọt lên mức cực đại trong vài nanodiây. Dòng điện siêu lớn này đi qua cấu 
+    trúc Silicon mỏng manh sẽ sinh ra nhiệt lượng cực lớn theo định luật 
+    Joule-Lenz (P = I^2 * R), làm nóng chảy và phá hủy hoàn toàn cấu trúc bán 
+    dẫn bên trong, dẫn đến hiện tượng nổ vi mô và cháy chip lập tức.
+
+
+1.2 Ứng dụng chế độ Input Pull-up và hiện tượng trạng thái lơ lửng (Floating)
+--------------------------------------------------------------------------------
+* Khi nào cần cấu hình một chân GPIO ở chế độ Input Pull-up?
+  - Ta cấu hình chân ở chế độ Input Pull-up khi kết nối với các thiết bị ngoại 
+    vi đầu vào hoạt động theo kiểu Tích cực mức thấp (Active Low) hoặc các ngõ 
+    ra kiểu Cực thu hở (Open-Drain/Open-Collector).
+  - Ứng dụng điển hình nhất là các Nút nhấn vật lý hoặc Ma trận phím có sơ đồ 
+    đấu nối một đầu vào chân GPIO, đầu còn lại nối thẳng xuống GND. Khi nút bấm 
+    ở trạng thái thả (mạch hở), điện trở Pull-up nội (30k - 50k Ohm) sẽ làm 
+    nhiệm vụ "neo" điện áp của chân cố định ở mức 3.3V, giúp thanh ghi dữ liệu 
+    đầu vào (IDR) luôn đọc được mức logic '1' ổn định, tránh sai lệch dữ liệu.
+
+* Hiện tượng xảy ra khi để chân ở trạng thái Floating (No Pull-up/Pull-down) 
+  và không kết nối:
+  - Hiện tượng trên thanh ghi: Giá trị logic đọc được từ thanh ghi dữ liệu đầu 
+    vào (IDR) sẽ bị loạn trạng thái, liên tục nhảy ngẫu nhiên bất định giữa '0' 
+    và '1' mà không thể dự đoán trước.
+  - Giải thích bản chất vật lý: Khi cấu hình Input Floating và không có kết nối 
+    vật lý, chân GPIO rơi vào trạng thái có trở kháng cực kỳ cao. Lúc này, chân 
+    chip hoạt động như một cây "ăng-ten" nhạy cảm, dễ dàng hấp thụ các loại 
+    nhiễu điện từ trường từ môi trường xung quanh (nhu sóng Wi-Fi, nhiễu tần số 
+    cao từ nguồn điện, hoặc tĩnh điện khi tay người đến gần). Điện áp trên chân 
+    se liên tục trồi sụt quanh ngưỡng chuyển mạch logic, khiến bộ so sánh điện 
+    áp bên trong liên tục đổi trạng thái và sinh ra chuỗi dữ liệu rác trong 
+    thanh ghi IDR.
+================================================================================
+TASK 2 (QUY TRÌNH CẤU HÌNH NGOẠI VI): TẦM QUAN TRỌNG CỦA XUNG NHIỆP (CLOCK)
+================================================================================
+
+2.1 Tại sao nhà sản xuất (ST) lại mặc định tắt toàn bộ Clock của ngoại vi 
+    khi vừa reset chip?
+--------------------------------------------------------------------------------
+Lý do cốt lõi và duy nhất cho thiết kế này là để TIẾT KIỆM ĐIỆN NĂNG (Tối ưu hóa 
+công suất tiêu thụ của chip).
+
+* Bản chất vật lý của vi điều khiển (CMOS Technology):
+  Các khối mạch số và transistor bên trong vi điều khiển tiêu thụ năng lượng chủ 
+  yếu trong quá trình chuyển mạch (chuyển trạng thái logic từ 0 sang 1 hoặc ngược 
+  lại). Quá trình chuyển mạch này được thúc đẩy trực tiếp bởi các cạnh xung nhịp 
+  (Clock edges). 
+  Nếu một ngoại vi được cấp xung nhịp, các cổng logic bên trong nó sẽ liên tục 
+  đóng/ngắt theo tần số của hệ thống bus, sinh ra dòng điện rò và dòng điện động 
+  khiến chip nóng lên và tiêu tốn năng lượng một cách vô ích, ngay cả khi người 
+  dùng hoàn toàn không sử dụng đến ngoại vi đó trong ứng dụng.
+
+* Giải pháp thiết kế:
+  STMicroelectronics thiết kế hệ thống Cây xung nhịp (Clock Tree) đi kèm các công 
+  tắc ngắt clock (Clock Gating) riêng biệt cho từng ngoại vi qua các thanh ghi 
+  RCC_AHBENR, RCC_APB1ENR, RCC_APB2ENR. Khi vừa khởi động (Reset), chip chỉ cấp 
+  clock tối thiểu cho lõi CPU và bộ nhớ Flash để chạy code core, còn lại tắt sạch 
+  mọi thứ. Ngoại vi nào cần dùng thì Firmware phải tự kích hoạt lên.
+
+
+2.2 Chuyện gì sẽ xảy ra nếu bạn cấu hình các thanh ghi chức năng của GPIO 
+    mà quên bật Clock cho Port đó?
+--------------------------------------------------------------------------------
+Nếu quên bật Clock cho Port GPIO (hoặc bất kỳ ngoại vi nào), hai hiện tượng kỹ 
+thuật sau sẽ đồng thời xảy ra:
+
+* Về mặt phần cứng bên trong chip:
+  Khối logic điều khiển và các thanh ghi của Port đó sẽ hoàn toàn "bị đóng băng" 
+  ở trạng thái chết. Khi không có các cạnh xung nhịp đi vào để kích hoạt các flip-
+  flop lưu trữ, các mạch logic bên trong thanh ghi không thể dịch bit hoặc cập 
+  nhật trạng thái mới được.
+
+* Về mặt phần mềm (Firmware):
+  Mọi lệnh ghi dữ liệu của CPU vào các thanh ghi cấu hình (ví dụ: thanh ghi CRL, 
+  CRH để chọn chế độ chân, hay thanh ghi ODR để xuất mức logic) đều trở nên 
+  VÔ NGHĨA. Chip sẽ không báo lỗi biên dịch (Compile Error) hay lỗi runtime 
+  (HardFault), nhưng các giá trị ghi vào sẽ bị "trôi tuột" đi, không có tác 
+  dụng. Thanh ghi sẽ giữ nguyên giá trị mặc định lúc reset (thường là trạng thái 
+  Input Floating). Kết quả là chân GPIO đó hoàn toàn trơ lỳ, không thể đọc, 
+  không thể xuất tín hiệu như kỳ vọng.
+================================================================================

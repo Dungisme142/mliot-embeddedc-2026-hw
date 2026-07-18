@@ -1,0 +1,4 @@
+D:/EmbeddedC/Matrix_Led_2x2 - Copy (2)/build/CMakeFiles/Matrix_Led_2x2.dir
+D:/EmbeddedC/Matrix_Led_2x2 - Copy (2)/build/CMakeFiles/generate_bin.dir
+D:/EmbeddedC/Matrix_Led_2x2 - Copy (2)/build/CMakeFiles/edit_cache.dir
+D:/EmbeddedC/Matrix_Led_2x2 - Copy (2)/build/CMakeFiles/rebuild_cache.dir
